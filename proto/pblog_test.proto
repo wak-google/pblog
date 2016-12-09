@@ -1,0 +1,14 @@
+// Used by pblog_test to make sure we can encode arbitrarily extended events
+// without affecting decode
+syntax = "proto2";
+import "pblog_event.proto";
+
+package pblog;
+
+message PbLogEventTest {
+  optional uint32 unimportant_field = 1;
+}
+
+extend PbLogEvent {
+  optional PbLogEventTest test_event = 199;
+}

@@ -1,0 +1,426 @@
+syntax = "proto2";
+import "pblog_event.proto";
+
+package pblog;
+
+// Memory error that occurred during memory configuration.
+message PbLogEventGenericMemoryConfigurationError {
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    // Memory modules disabled due to a miscellaneous error (Memory BIST etc.)
+    TYPE_DISABLED_DUE_TO_ERROR = 1;
+    // Memory modules disabled due to an invalid memory population or due to
+    // modules that aren't accessible due to an error on modules on the same
+    // channel.
+    TYPE_DISABLED_DUE_TO_CONFIGURATION = 2;
+    // Memory modules which failed BIST.
+    TYPE_BIST_FAILURE = 3;
+    // Memory modules which failed training.
+    TYPE_TRAINING_FAILURE = 4;
+    // Memory modules which failed coarse delay calibration.
+    TYPE_COARSE_DELAY_FAILURE = 5;
+    // Memory modules which failed software based memory test.
+    TYPE_SOFTWARE_MEMORY_TEST_FAILURE = 6;
+    // Memory modules with invalid SPD checksums.
+    TYPE_SPD_CHECKSUM_FAILURE = 7;
+  }
+  optional Type type = 1;
+  // List of board specific memory module identifiers affected by the error
+  // specified by the "type" field.
+  repeated uint32 identifier = 2;
+}
+
+// Memory error that occurred during memory operation.
+message PbLogEventGenericMemoryRuntimeError {
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    TYPE_CORRECTABLE = 1;
+    TYPE_UNCORRECTABLE = 2;
+  }
+  // Type of error.
+  optional Type type = 1;
+  // Board specific identifier for the memory module that experienced an error.
+  // This could be a DIMM slot number as described on the board's silkscreen.
+  optional uint32 identifier = 2;
+  // Detailed memory location which experienced the error.
+  optional uint64 physical_address = 3;
+  optional uint32 rank = 4;
+  optional uint32 bank = 5;
+  optional uint32 row = 6;
+  optional uint32 column = 7;
+}
+
+// Location of a PCI root port or end-point.
+message PciLocation {
+  // Logical location of the root port or end-point that caused the error.
+  optional uint32 segment = 1;
+  optional uint32 bus = 2;
+  optional uint32 device = 3;
+  optional uint32 function = 4;
+  // Physical board specific location of the slot the device is connected to.
+  optional uint32 slot = 5;
+}
+
+// A PCI device reported an error.
+message PbLogEventGenericPciError {
+  // Type of PCI error that occurred.
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    TYPE_PARITY_ERROR = 1;
+    TYPE_SYSTEM_ERROR = 2;
+    TYPE_TRAINING_FAILED = 3;
+    TYPE_DOWN_TRAINING_OCCURRED = 4;
+  }
+  optional Type type = 1;
+  optional PciLocation location = 2;
+}
+
+// A CPU error was detected.
+message PbLogEventGenericCpuError {
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    // Installed CPUs in a multi-socket systems are not symmetric.
+    TYPE_CPU_MISMATCH = 1;
+    // CPU failed built in self test.
+    TYPE_BIST_FAILURE = 2;
+    // CPU detected an internal error.
+    TYPE_INTERNAL_ERROR = 3;
+  }
+  // Identifier of CPU in the system.
+  optional uint32 identifier = 1;
+
+}
+
+// See the PCI Express Advanced Error Reporting Enhanced Capability.
+message PbLogEventGenericPcieAerError {
+  optional PciLocation location = 1;
+  // See Uncorrectable Error Status Register (Offset 04h).
+  optional uint32 uncorrectable_error_status = 2;
+  // See Uncorrectable Error Severity Register (Offset 0Ch).
+  optional uint32 uncorrectable_error_severity = 3;
+  // See Uncorrectable Error Severity Register (Offset 10h).
+  optional uint32 correctable_error_status = 4;
+  // See Header Log Register (Offset 1Ch..28h).
+  // Contains the TLP corresponding to the detected error.
+  optional uint32 header_log_dword0 = 5;
+  optional uint32 header_log_dword1 = 6;
+  optional uint32 header_log_dword2 = 7;
+  optional uint32 header_log_dword3 = 8;
+  // See Root Error Status Register (Offset 30h).
+  optional uint32 root_error_status = 9;
+}
+
+// Watchdog timed out.
+message PbLogEventGenericWatchdogTimeout {
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    TYPE_SYSTEM_HARDWARE_WATCHDOG = 1;
+    // Networking not working for a specific amount of time.
+    TYPE_NETWORK_WATCHDOG = 2;
+    // Synonymous with the Linux NMI watchdog.
+    TYPE_OS_KERNEL_SPACE_WATCHDOG = 3;
+    // Miscellaneous userspace watchdog trip.
+    TYPE_OS_USER_SPACE_WATCHDOG = 4;
+  }
+  // The type of watchdog that timed out.
+  optional Type type = 1;
+  // Time in seconds that elapsed before the watchdog tripped.
+  optional uint64 time_elapsed = 2;
+}
+
+// A component was changed in the system.
+message PbLogEventGenericComponentChanged {
+  enum Component {
+    COMPONENT_UNKNOWN = 0;
+    COMPONENT_CPU = 1;
+    COMPONENT_MEMORY = 2;
+    COMPONENT_PCI_DEVICE = 3;
+    COMPONENT_EXPANSION_SLOT = 4;
+    COMPONENT_FAN = 5;
+    COMPONENT_MASS_STORAGE_DEVICE = 6;
+  }
+  optional Component component = 1;
+  // System specific location (e.g slot or socket number) of the component
+  // that was changed in the system.
+  optional uint32 identifier = 2;
+}
+
+// Location of a CPU's hardware thread.
+message CpuLocation {
+  // System specific socket location of a CPU.
+  optional uint32 socket = 1;
+  optional uint32 die = 2;
+  optional uint32 core = 3;
+  optional uint32 thread = 4;
+}
+
+// An error occurred on the CPU's coherent fabric.
+message PbLogEventGenericCoherentFabricError {
+  // Location of the CPU that observed the error.
+  optional CpuLocation cpu_location = 1;
+  // Implementation specific identifier of the part that observed the error.
+  optional uint32 part_identifier = 2;
+  // Identifies the system specific identifier for the coherent link that
+  // observed the error.
+  optional uint32 link_identifier = 3;
+}
+
+// Event log was cleared.  This event is logged when an event log is shrunk
+// to accommodate new events.
+message PbLogEventGenericLogCleared {
+  // Number of bytes cleared from the log.
+  optional uint32 bytes_cleared = 1;
+}
+
+// System was shutdown by either the operating system or the system firmware.
+message PbLogEventGenericShutdown {
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    // System shut down cleanly.
+    TYPE_CLEAN = 1;
+    // OS failed to shutdown cleanly.
+    TYPE_DIE = 2;
+    // Linux kernel panic.
+    TYPE_PANIC = 3;
+    // Linux kernel oops.
+    TYPE_OOPS = 4;
+    // Exception in an exception handler.
+    TYPE_TRIPLE_FAULT = 5;
+  }
+  optional Type type = 1;
+}
+
+// x86 CPU logged a machine check.
+message PbLogEventX86MachineCheck {
+  // Location of the CPU that observed the machine check.
+  optional CpuLocation cpu_identifier = 1;
+  // See the Intel Machine Check Architecture specification.
+  optional uint32 bank = 2;
+  optional uint64 status = 3;
+  optional uint64 address = 4;
+  optional uint64 misc = 5;
+}
+
+// System's ACPI sleep state changed.
+message PbLogEventAcpiSleepStateChanged {
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    // Working, everything powered on.
+    TYPE_S0 = 1;
+    // Only CPU and RAM powered.
+    TYPE_S1 = 2;
+    // CPU powered off, RAM powered.
+    TYPE_S2 = 3;
+    // Suspend to RAM.
+    TYPE_S3 = 4;
+    // Hibernation / suspend to disk.
+    TYPE_S4 = 5;
+    // Soft off.
+    TYPE_S5 = 6;
+  };
+  optional Type type = 1;
+}
+
+// Location of NVRAM in teh system.
+message PbLogEventGenericNvRamLocation {
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    // Small battery backed storage, located in a Super I/O, Southbridge etc.
+    TYPE_CMOS = 1;
+    // BIOS EEPROM, NAND / NOR flash.  Same location as the system firmware.
+    TYPE_SYSTEM_FIRMWARE_FLASH = 2;
+    // Board specific location.
+    TYPE_OTHER = 3;
+  }
+  optional Type type = 1;
+  // Board specific identifier / location of NVRAM storage that is cleared.
+  optional uint32 identifier = 2;
+}
+
+// NVRAM error occurred.
+message PbLogEventGenericNvRamError {
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    // Failed to validate NVRAM.
+    TYPE_VALIDATION_FAILURE = 1;
+    // After a brief test the firmware has determined the NVRAM region isn't
+    // functional.  For example, CMOS may not work if the backup battery isn't
+    // installed.
+    TYPE_NOT_FUNCTIONAL = 2;
+  }
+  optional PbLogEventGenericNvRamLocation location = 1;
+  optional Type type = 2;
+}
+
+// System reset.
+message PbLogEventGenericReset {
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    TYPE_BUTTON = 1;
+    TYPE_SYSTEM_FIRMWARE = 2;
+    TYPE_OS = 3;
+  }
+  // The cause of the reset.
+  optional Type type = 1;
+}
+
+// Logged when a filesystem is checked by a validation / repair tool
+// (e.g fsck).
+message PbLogEventGenericFilesystemCheck {
+  // User determined details about the filesystem check (could be the return
+  // code).
+  optional uint64 detail = 1;
+  // User specific identifier of the filesystem that was checked.
+  optional uint64 file_system_identifier = 2;
+}
+
+// Indicates the system last shutdown due to a thermal trip event.
+message PbLogEventGenericThermalTrip {
+  // Board specific identifier of the component that caused the thermal trip.
+  optional uint64 identifier = 1;
+}
+
+// System firmware version changed.
+message PbLogEventGenericSystemFirmwareVersionChanged {
+  // Board specific location of the system firmware component that changed
+  // version.
+  optional uint64 firmware_location = 1;
+  // Previous version number.  The format of this value is firmware specific.
+  optional uint64 previous_version = 2;
+  // Current version number.  The format of this value is firmware specific.
+  optional uint64 current_version = 3;
+}
+
+// System firmware failed validation.
+message PbLogEventGenericSystemFirmwareValidationError {
+  // Board specific location of the system firmware component that failed
+  // validation.
+  optional uint64 firmware_location = 1;
+  // Board specific error code.
+  optional uint64 error = 2;
+}
+
+// System firmware update failed.
+message PbLogEventGenericSystemFirmwareUpdateError {
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    TYPE_DEVICE_ERROR = 1;
+    TYPE_DENIED_BY_POLICY = 2;
+  }
+  // Board specific location of the system firmware component that failed to
+  // update.
+  optional uint64 firmware_location = 1;
+  optional Type error = 2;
+}
+
+// System firmware's configuration has been manually changed.
+message PbLogEventGenericSystemFirmwareConfigurationChanged {
+  // Board specific location of the system firmware component with modified
+  // configuration.
+  optional uint64 firmware_location = 1;
+}
+
+// Vendor and *mostly* architecture independent events.
+message PbLogEventGeneric {
+  enum Type {
+    TYPE_UNKNOWN = 0;
+    // System powered on.
+    TYPE_POWER_ON = 1;
+    // System experienced a power failed, this could be logged on power on
+    // after a power failure.
+    TYPE_POWER_FAILURE = 2;
+    // See "reset" / PbLogEventGenericReset.
+    TYPE_RESET = 3;
+    // The first PBLOG-write capable firmware has started to boot the system.
+    TYPE_SYSTEM_BOOT = 4;
+    // See "shutdown" / PbLogEventGenericShutdown.
+    TYPE_SHUTDOWN = 5;
+    // See "log_cleared" / PbLogEventGenericLogCleared.
+    TYPE_LOG_CLEARED = 6;
+    // Protocol buffer event log is disabled.
+    TYPE_LOG_DISABLED = 7;
+    // Event that is used to indicate a cleared log area without clearing the
+    // entire area.  Any events before the last checkpoint can optionally be
+    // ignored by tools that parse the log.
+    TYPE_LOG_CHECKPOINT = 8;
+    // See "cleared_nvram_location" / PbLogEventGenericNvRamLocation.
+    TYPE_NVRAM_CLEARED = 9;
+    // See "nvram_error" / PbLogEventGenericNvRamError.
+    TYPE_NVRAM_ERROR = 10;
+    // See "watchdog_timeout" / PbLogEventGenericWatchdogTimeout.
+    TYPE_WATCHDOG_TIMEOUT = 11;
+    // System firmware didn't find media to boot from.
+    TYPE_BOOT_MEDIA_NOT_FOUND = 12;
+    // See "cpu_error" / PbLogEventGenericCpuError.
+    TYPE_CPU_ERROR = 13;
+    // See "memory_configuration_error" /
+    // PbLogEventGenericMemoryConfigurationError.
+    TYPE_MEMORY_CONFIGURATION_ERROR = 14;
+    // See "memory_runtime_error" / PbLogEventGenericMemoryRuntimeError.
+    TYPE_MEMORY_RUNTIME_ERROR = 15;
+    // See "pci_error" / PbLogEventGenericPciError.
+    TYPE_PCI_ERROR = 16;
+    // See "pcie_aer_error" / PbLogEventGenericPcieAerError.
+    TYPE_PCIE_AER_ERROR = 19;
+    // See "thermal_trip" / PbLogEventGenericThermalTrip.
+    TYPE_THERMAL_TRIP = 20;
+    // See "coherent_fabric_error" / PbLogEventGenericCoherentFabricError.
+    TYPE_COHERENT_FABRIC_ERROR = 21;
+    // See "filesystem_check" / PbLogEventGenericFilesystemCheck.
+    TYPE_FILESYSTEM_CHECK = 22;
+    // See "component_changed" / PbLogEventGenericComponentChanged.
+    TYPE_COMPONENT_CHANGED = 23;
+    // See "system_firmware_version_changed" /
+    // PbLogEventGenericSystemFirmwareVersionChanged.
+    TYPE_SYSTEM_FIRMWARE_VERSION_CHANGED = 24;
+    // See "system_firmware_validation_error" /
+    // PbLogEventGenericSystemFirmwareValidationError.
+    TYPE_SYSTEM_FIRMWARE_VALIDATION_ERROR = 25;
+    // See "system_firmware_update_error" /
+    // PbLogEventGenericSystemFirmwareUpdateError.
+    TYPE_SYSTEM_FIRMWARE_UPDATE_ERROR = 26;
+    // See "system_firmware_configuration_changed" /
+    // PbLogEventGenericSystemFirmwareConfigurationChanged.
+    TYPE_SYSTEM_FIRMWARE_CONFIGURATION_CHANGED = 27;
+    // See "x86_machine_check" / PbLogEventX86MachineCheck.
+    TYPE_X86_CPU_MACHINE_CHECK = 28;
+    // See PbLogEventAcpiSleepStateChange.
+    TYPE_ACPI_SLEEP_STATE_CHANGED = 29;
+    // Operating system is being kexec'd.
+    TYPE_OS_KEXEC = 30;
+    // BIOS is done and handing off.
+    TYPE_BIOS_HANDOFF = 31;
+  }
+  required Type type = 2;
+  // Optional fields that are dependent upon the value of "type".
+  optional PbLogEventGenericReset reset = 3;
+  optional PbLogEventGenericShutdown shutdown = 4;
+  optional PbLogEventGenericLogCleared log_cleared = 5;
+  optional PbLogEventGenericNvRamLocation cleared_nvram_location = 6;
+  optional PbLogEventGenericNvRamError nvram_error = 7;
+  optional PbLogEventGenericWatchdogTimeout watchdog_timeout = 8;
+  optional PbLogEventGenericCpuError cpu_error = 9;
+  optional PbLogEventGenericMemoryConfigurationError
+    memory_configuration_error = 10;
+  optional PbLogEventGenericMemoryRuntimeError memory_runtime_error = 11;
+  optional PbLogEventGenericPciError pci_error = 12;
+  optional PbLogEventGenericPcieAerError pcie_aer_error = 13;
+  optional PbLogEventGenericThermalTrip thermal_trip = 14;
+  optional PbLogEventGenericCoherentFabricError coherent_fabric_error = 15;
+  optional PbLogEventGenericFilesystemCheck filesystem_check = 16;
+  optional PbLogEventGenericComponentChanged component_changed = 17;
+  optional PbLogEventGenericSystemFirmwareVersionChanged
+    system_firmware_version_changed = 18;
+  optional PbLogEventGenericSystemFirmwareValidationError
+    system_firmware_validation_error = 19;
+  optional PbLogEventGenericSystemFirmwareUpdateError
+    system_firmware_update_error = 20;
+  optional PbLogEventGenericSystemFirmwareConfigurationChanged
+    system_firmware_configuration_changed = 21;
+  optional PbLogEventX86MachineCheck x86_machine_check = 22;
+  optional PbLogEventAcpiSleepStateChanged acpi_sleep_state_changed = 23;
+}
+
+extend PbLogEvent {
+  optional PbLogEventGeneric generic_event = 101;
+}

@@ -1,0 +1,227 @@
+syntax = "proto2";
+import "pblog_event.proto";
+
+package pblog;
+
+// Google systems must always log a software shutdown reason before going down.
+// The first firmware to run which can write to PBLOG is expected to determine
+// what software layer was running when the system went down for the bootnum(s)
+// missing software shutdown reasons and report that software layer's default
+// shutdown reason for the relevant bootnum(s) before logging any other events.
+message PbLogEventGoogleSoftwareShutdown {
+  enum BiosShutdownReason {
+    BIOS_SHUTDOWN_UNREPORTED = 0;
+    BIOS_SHUTDOWN_PCIE_PRESENT_NOT_TRAINED = 1;
+    BIOS_SHUTDOWN_PCIE_DOWNTRAIN = 2;
+    BIOS_SHUTDOWN_PCIE_PREVENT_HANG = 3;
+    BIOS_SHUTDOWN_FIRMWARE_UPDATE = 4;
+    BIOS_SHUTDOWN_NO_BOOT_MEDIA_FOUND = 5;
+  }
+  enum KernelShutdownReason {
+    KERNEL_SHUTDOWN_UNINTENDED = 0;
+    KERNEL_SHUTDOWN_CLEAN = 1;
+    KERNEL_SHUTDOWN_OOPS = 2;
+    KERNEL_SHUTDOWN_DIE = 3;
+    KERNEL_SHUTDOWN_PANIC = 4;
+    KERNEL_SHUTDOWN_MBE = 5;
+    KERNEL_SHUTDOWN_TRIPLE_FAULT = 6;
+    KERNEL_SHUTDOWN_MCE = 7;
+    KERNEL_SHUTDOWN_SW_WATCHDOG = 8;
+    KERNEL_SHUTDOWN_NMI_WATCHDOG = 9;
+    KERNEL_SHUTDOWN_SYSRQ_REBOOT = 10;
+  }
+
+  // Make sure to check the field is set before reading the value!
+  optional BiosShutdownReason bios_shutdown_reason = 1
+      [default = BIOS_SHUTDOWN_UNREPORTED];
+  optional KernelShutdownReason kernel_shutdown_reason = 2
+      [default = KERNEL_SHUTDOWN_UNINTENDED];
+  // Add additional software layer shutdown reasons here...
+}
+
+// TODO(ewout & rlippert & jadmanski): should this be used to log the relevant
+// software shutdown event specified above instead of relying on a larger
+// amount of events which is likely more difficult to maintain and understand?
+message PbLogEventGoogleSoftwareCheckpoint {
+  enum SoftwareCheckpoint {
+    BIOS_BOOT = 0;
+    BIOS_DONE = 1;
+    PROD_KERNEL_BOOT = 2;
+    PROD_KERNEL_DONE = 3;
+    KDUMP_KERNEL_BOOT = 4;
+    KDUMP_KERNEL_DONE = 5;
+    PETITBOOT_KERNEL_BOOT = 6;
+    PETITBOOT_KERNEL_BOOT_DONE = 7;
+  }
+  optional SoftwareCheckpoint checkpoint = 1;
+}
+
+message PbLogEventGoogleOpenpowerFirmwareEvent {
+  enum Source {
+    SOURCE_ERRL = 0x0100;
+    SOURCE_DEVFW = 0x0200;
+    SOURCE_SCOM = 0x0300;
+    SOURCE_XSCOM = 0x0400;
+    SOURCE_INITSVC = 0x0500;
+    SOURCE_PNOR = 0x0600;
+    SOURCE_I2C = 0x0700;
+    SOURCE_VFS = 0x0800;
+    SOURCE_HWPF = 0x0900;
+    SOURCE_FSI = 0x0A00;
+    SOURCE_TARG = 0x0B00;
+    SOURCE_HWAS = 0x0C00;
+    SOURCE_FSISCOM = 0x0D00;
+    SOURCE_EEPROM = 0x0E00;
+    SOURCE_INTR = 0x0F00;
+    SOURCE_TOD = 0x1000;
+    SOURCE_MBOX = 0x1100;
+    SOURCE_DUMP = 0x1200;
+    SOURCE_CONSOLE = 0x1300;
+    SOURCE_MDIA = 0x1400;
+    SOURCE_TRACE = 0x1500;
+    SOURCE_UTIL = 0x1600;
+    SOURCE_ISTEP = 0x1700;
+    SOURCE_ATTN = 0x1800;
+    SOURCE_SCAN = 0x1900;
+    SOURCE_RUNTIME = 0x1A00;
+    SOURCE_KERNEL = 0x1B00;
+    SOURCE_IBSCOM = 0x1C00;
+    SOURCE_VPD = 0x1D00;
+    SOURCE_SECURE = 0x1E00;
+    SOURCE_IPC = 0x1F00;
+    SOURCE_HSVC = 0x2000;
+    SOURCE_DEVTREE = 0x2100;
+    SOURCE_SBE = 0x2200;
+    SOURCE_GPIO = 0x2300;
+    SOURCE_LPC = 0x2400;
+    SOURCE_IPMI = 0x2500;
+    SOURCE_HTMGT = 0x2600;
+    SOURCE_OCCC = 0x2A00;
+    SOURCE_HBTRACE = 0x3100;
+    SOURCE_PRDF = 0xE500;
+
+    SOURCE_EC = 0x4100;
+
+    /* Sapphire/Skiboot components */
+    SOURCE_OPAL_CODEUPDATE = 0x4355;   /* CU */
+    SOURCE_OPAL_CONSOLE = 0x434E;      /* CN */
+    SOURCE_OPAL_CEC = 0x4345;          /* CE */
+    SOURCE_OPAL_CHIP = 0x4348;         /* CH */
+    SOURCE_OPAL_ELOG = 0x454C;         /* EL */
+    SOURCE_OPAL_NVRAM = 0x4E56;        /* NV */
+    SOURCE_OPAL_RTC = 0x5254;          /* RT */
+    SOURCE_OPAL_SURVEILLANCE = 0x5355; /* SU */
+    SOURCE_OPAL_SYSPARAM = 0x5350;     /* SP */
+    SOURCE_OPAL_LPC = 0x4C50;          /* LP */
+    SOURCE_OPAL_UART = 0x5541;         /* UA */
+    SOURCE_OPAL_OCC = 0x4F43;          /* OC */
+    SOURCE_OPAL_OP_PANEL = 0x4F50;     /* OP */
+    SOURCE_OPAL_PHB3 = 0x5048;         /* PH */
+    SOURCE_OPAL_PSI = 0x5053;          /* PS */
+    SOURCE_OPAL_VPD = 0x5650;          /* VP */
+    SOURCE_OPAL_XSCOM = 0x5853;        /* XS */
+    SOURCE_OPAL_PCI = 0x5043;          /* PC */
+    SOURCE_OPAL_MISC = 0x4D49;         /* MI */
+    SOURCE_OPAL_ATTN = 0x4154;         /* AT */
+    SOURCE_OPAL_MEM_ERR = 0x4D45;      /* ME */
+    SOURCE_OPAL_CENTAUR = 0x4354;      /* CT */
+    SOURCE_OPAL_MFSI = 0x4D46;         /* MF */
+    SOURCE_OPAL_DUMP = 0x4455;         /* DU */
+    SOURCE_OPAL_LED = 0x4C45;          /* LE */
+    SOURCE_OPAL_SENSOR = 0x5345;       /* SE */
+    SOURCE_OPAL_SLW = 0x534C;          /* SL */
+    SOURCE_OPAL_FSP = 0x4650;          /* FP */
+    SOURCE_OPAL_I2C = 0x4943;          /* IC */
+  }
+  enum EpubSubsystem {
+    // Processor subsystem
+    EPUB_PROCESSOR_SUBSYS = 0x10;
+    EPUB_PROCESSOR_FRU = 0x11;
+    EPUB_PROCESSOR_CHIP_CACHE = 0x12;
+    EPUB_PROCESSOR_UNIT = 0x13;
+    EPUB_PROCESSOR_BUS_CTL = 0x14;
+
+    // Memory subsystem
+    EPUB_MEMORY_SUBSYS = 0x20;
+    EPUB_MEMORY_CONTROLLER = 0x21;
+    EPUB_MEMORY_BUS = 0x22;
+    EPUB_MEMORY_DIMM = 0x23;
+    EPUB_MEMORY_FRU = 0x24;
+    EPUB_EXTERNAL_CACHE = 0x25;
+
+    EPUB_IO_SUBSYSTEM = 0x30;
+    EPUB_IO_DEVICES = 0x40;
+
+    // CEC Hardware
+    EPUB_CEC_HDW_SUBSYS = 0x50;
+    EPUB_CEC_HDW_VPD_INTF = 0x55;
+    EPUB_CEC_HDW_I2C_DEVS = 0x56;
+    EPUB_CEC_HDW_CHIP_INTF = 0x57;  // includes JTAG, FSI, etc.
+    EPUB_CEC_HDW_CLK_CTL = 0x58;
+    EPUB_CEC_HDW_TOD_HDW = 0x5A;
+    EPUB_CEC_HDW_SP_PHYP_INTF = 0x5C;
+
+    // Power/Cooling subsystem
+    EPUB_POWER_SUBSYS = 0x60;
+
+    // Others
+    EPUB_MISC_SUBSYS = 0x70;
+    EPUB_MISC_TEST_TOOL = 0x72;
+    EPUB_MISC_MULTIPLE_SUBSYS = 0x74;
+    EPUB_MISC_UNKNOWN = 0x75;
+    EPUB_MISC_INFORMATIONAL = 0x76;
+    EPUB_SURVEILLANCE_ERR = 0x7A;
+
+    // Platform Firmware
+    EPUB_FIRMWARE_SUBSYS = 0x80;
+    EPUB_FIRMWARE_SP = 0x81;
+    EPUB_FIRMWARE_PHYP = 0x82;
+
+    EPUB_FIRMWARE_HOSTBOOT = 0x8A;
+    EPUB_FIRMWARE_OPAL = 0x8B;
+    EPUB_UNKNOWN = 0xFF;
+  }
+  optional Source source = 1;
+
+  optional EpubSubsystem epub_subsystem = 2;
+
+  optional string description = 3;
+
+  optional uint32 module_id = 4;
+  optional string module_name = 5;
+
+  optional uint32 reason_code = 6;
+  optional string reason_string = 7;
+
+  message UserData {
+    required uint64 data = 1;
+    required string description = 2;
+  }
+  repeated UserData user_data = 8;
+
+  message DeviceLocator {
+    // Integer identifier of device, e.g. DIMM number, CPU socket, PCI slot.
+    optional int64 id = 1;
+    // Freeform text identifier of device.
+    optional string path = 2;
+  }
+  repeated DeviceLocator target = 9;
+}
+
+message PbLogEventGoogle {
+  enum Type {
+    // See "software_shutdown" / PbLogEventGoogleSoftwareShutdown.
+    TYPE_SOFTWARE_SHUTDOWN = 0;
+    // See "openpower_firmware_event" / PbLogEventGoogleOpenpowerFirmwareEvent.
+    TYPE_OPENPOWER_FIRMWARE_EVENT = 1000;
+  }
+  required Type type = 2;
+  // Optional fields that are dependent upon the value of "type".
+  optional PbLogEventGoogleSoftwareShutdown software_shutdown = 3;
+  optional PbLogEventGoogleSoftwareCheckpoint software_checkpoint = 4;
+  optional PbLogEventGoogleOpenpowerFirmwareEvent openpower_firmware_event = 5;
+}
+
+extend PbLogEvent {
+  optional PbLogEventGoogle google_event = 102;
+}

@@ -30,9 +30,31 @@ extern "C" {
 /* Encodes an event and writes it to the provided buffer.
    Returns: the encoded length in bytes or <0 on error. */
 int event_encode(const pblog_Event *event, void *buf, size_t len);
+
+/* Decodes an event and writes it to the provided event pointer.
+   Returns: 0 on success, <0 on error. */
 int event_decode(const void *buf, size_t len, pblog_Event *event);
+
 /* Returns the encoded length of the event or <0 on error. */
 int event_size(const pblog_Event *event);
+
+/* Adds this extension type to list of extensions in event. Caller maintains
+ * ownership of data and must free after calling pb_encode() (or use stack
+ * allocated vars).
+ *
+ * Returns true if the extension type is successfully added, false if extension
+ * type already exists or could not be added
+ */
+bool event_add_extension(pblog_Event *event,
+                         const pb_extension_type_t *ext_type,
+                         void *dest_struct);
+
+/* Checks if the extension type was found when decoding this event. If the
+ * extension was found, write out a pointer to the destination struct.
+ */
+bool event_has_extension(pblog_Event *event,
+                         const pb_extension_type_t *ext_type,
+                         void **dest_struct);
 
 /* Initializes/destroys an event structure. */
 void event_init(pblog_Event *event);

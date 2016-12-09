@@ -47,10 +47,17 @@ typedef struct pblog {
    */
   enum pblog_status (*add_event)(struct pblog *pblog, pblog_Event *event);
 
+  /* Adds a single encoded event to the log. Event will be written as-is to the
+   * log without being modified.
+   */
+  enum pblog_status (*add_bytes)(struct pblog *pblog, const char *buf,
+                                 size_t len);
+
   /* Calls provided callback for every event in the log.
    * Args:
    *   callback: will be called in order of oldest to most recent entry.
-   *   event: event struct to use for unserializing each event, must be non-NULL
+   *   event: event struct to use for unserializing each event, must be
+   * non-NULL
    *   priv: opaque pointer that is passed to callback
    */
   enum pblog_status (*for_each_event)(struct pblog *pblog,
