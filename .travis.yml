@@ -5,23 +5,26 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
       - llvm-toolchain-precise-3.8
+      - kalakris-cmake
     packages:
       - clang-3.8
       - clang-tidy-3.8
+      - cmake
       - gcc-6
       - g++-6
+      - valgrind
 language:
   - c
   - c++
 env:
   global:
     - GOOGLETEST_VERSION=1.8.0
-    - NANOPB_VERSION=58af4d1fb733c5348b68dd3980f2a230d95400b4
+    - NANOPB_VERSION=83bc718e6c50ccf8dd99326351d00a1050463d26
   matrix:
     - PROTOBUF_VERSION=2.6.1 MYCC=gcc-6
     - PROTOBUF_VERSION=2.6.1 MYCC=clang-3.8
-    - PROTOBUF_VERSION=3.1.0 MYCC=gcc-6
-    - PROTOBUF_VERSION=3.1.0 MYCC=clang-3.8
-    - LINT=1 PROTOBUF_VERSION=3.1.0 MYCC=clang-3.8
+    - PROTOBUF_VERSION=3.2.0 MYCC=gcc-6
+    - PROTOBUF_VERSION=3.2.0 MYCC=clang-3.8
+    - LINT=1 PROTOBUF_VERSION=3.2.0 MYCC=clang-3.8
 install: ./.travis-install.sh
 script: ./.travis-script.sh

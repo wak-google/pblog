@@ -16,13 +16,13 @@
 
 syntax = "proto2";
 // Event protobuf definitions.
-import "nanopb.proto";
+import "nanopb/options.proto";
 
 package pblog;
 
-option (nanopb_fileopt).long_names = false;
-option (nanopb_fileopt).packed_struct = true;
-option (nanopb_fileopt).enum_to_string = true;
+option (nanopb.fileopt).long_names = false;
+option (nanopb.fileopt).packed_struct = true;
+option (nanopb.fileopt).enum_to_string = true;
 
 // Note: More common events should use lower numbers as they encode to smaller
 // values.
@@ -322,9 +322,9 @@ message OpenpowerFirmwareEvent {
     required uint64 data = 1;
     required string description = 2;
   }
-  repeated UserData user_data = 8 [(nanopb).max_count = 3];
+  repeated UserData user_data = 8 [(nanopb.fieldopt).max_count = 3];
 
-  repeated DeviceLocator target = 9 [(nanopb).max_count = 4];
+  repeated DeviceLocator target = 9 [(nanopb.fieldopt).max_count = 4];
 }
 
 message Event {
@@ -348,7 +348,7 @@ message Event {
   // system reset / power cycle.
   optional uint32 boot_number = 4;
   // Generic key / value strings that are associated with the event.
-  repeated EventData data = 5 [(nanopb).max_count = 5];
+  repeated EventData data = 5 [(nanopb.fieldopt).max_count = 5];
   // One of the following messages may be set.
   optional PbLogEventGenericShutdown generic_shutdown = 100;
   optional PbLogEventGenericReset generic_reset = 101;

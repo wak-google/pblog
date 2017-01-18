@@ -52,9 +52,11 @@ class PblogFileTest : public ::testing::Test {
     file_regions[0].offset = offset0;
     file_regions[0].size = size0;
     file_regions[0].used_size = 0;
+    file_regions[0].sequence = 0;
     file_regions[1].offset = offset1;
     file_regions[1].size = size1;
     file_regions[1].used_size = 0;
+    file_regions[1].sequence = 1;
 
     flash_ri_ =
         static_cast<struct record_intf *>(malloc(sizeof(struct record_intf)));
@@ -65,6 +67,7 @@ class PblogFileTest : public ::testing::Test {
                      &pblog_file_ops);
 
     mem_log_ = malloc(size0 + size1);
+    memset(mem_log_, 0, size0 + size1);
 
     pblog_ = static_cast<struct pblog *>(malloc(sizeof(struct pblog)));
     pblog_->get_current_bootnum = nullptr;
@@ -112,13 +115,12 @@ pblog_status collect_events_cb(int valid, const pblog_Event *event,
 
 TEST_F(PblogFileTest, TotallyEmptyLog) {
   init_2regions(0, 0xff, 0x100, 0xff);
-  pblog_Event event;
 
+  // Should log a clear event.
+  pblog_Event event;
   EXPECT_EQ(0,
             pblog_->for_each_event(pblog_, collect_events_cb, &event, nullptr));
   EXPECT_EQ(static_cast<size_t>(1), events->size());
-
-  // Should log a clear event.
   EXPECT_EQ(pblog_TYPE_LOG_CLEARED, events->at(0)->type);
 }
 

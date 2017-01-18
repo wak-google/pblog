@@ -41,17 +41,29 @@ pip install --user "protobuf==$PROTOBUF_VERSION"
 
 # Setup nanopb
 downloadUnpack "https://github.com/nanopb/nanopb/archive/$NANOPB_VERSION.tar.gz" "nanopb"
-make "${MAKEFLAGS[@]}" -C nanopb/generator/proto  # TOOD(wak): Remove once we fix this in the makefile
+mkdir nanopb-build
+pushd nanopb-build
+export CFLAGS="-g -O0"
+cmake ../nanopb \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX="$LOCAL_PREFIX" \
+  -DCMAKE_INSTALL_LIBDIR="$LOCAL_PREFIX/lib"
+make "${MAKEFLAGS[@]}"
+make "${MAKEFLAGS[@]}" install
+export CFLAGS=
+popd build
 
 # Setup googletest
 downloadUnpack "https://github.com/google/googletest/archive/release-$GOOGLETEST_VERSION.tar.gz" "googletest"
 pushd "googletest" >/dev/null
+export CFLAGS="-g -O0"
 cmake \
   -DCMAKE_INSTALL_PREFIX="$LOCAL_PREFIX" \
   -DMAKE_BUILD_TYPE=Release \
   -DBUILD_GTEST=ON -DBUILD_GMOCK=OFF
 make "${MAKEFLAGS[@]}"
 make "${MAKEFLAGS[@]}" install
+export CFLAGS=
 popd >/dev/null
 
 # Pop back into the source directory

@@ -4,8 +4,17 @@ PREFIX ?= /usr
 INCLUDEDIR ?= $(PREFIX)/include
 LIBDIR ?= $(PREFIX)/lib
 
+# Determine where the nanopb dependency lives
+NANOPB_PKGCONF_PREFIX = $(shell pkg-config --variable=prefix --silence-errors nanopb)
+NANOPB_PKGCONF_INCDIR = $(shell pkg-config --variable=includedir --silence-errors nanopb)
+NANOPB_PKGCONF_LIBDIR = $(shell pkg-config --variable=libdir --silence-errors nanopb)
+
+NANOPB_DIR ?= $(or $(NANOPB_PKGCONF_PREFIX),$(PREFIX))
+NANOPB_INC_DIR ?= $(or $(NANOPB_PKGCONF_INCDIR),$(NANOPB_DIR)/include)
+NANOPB_LIB_DIR ?= $(or $(NANOPB_PKGCONF_LIBDIR),$(NANOPB_DIR)/lib)
+
 # Test dependencies
-GTEST_DIR ?= /usr
+GTEST_DIR ?= $(PREFIX)
 GTEST_LIBDIR ?= $(GTEST_DIR)/lib
 GTEST_INCDIR ?= $(GTEST_DIR)/include
 
@@ -34,10 +43,10 @@ PBLOG_TESTS_RUN = $(patsubst %,%_run,$(PBLOG_TESTS))
 
 # Test Params
 PBLOG_TESTS_CFLAGS = $(CFLAGS) $(PBLOG_CFLAGS) -std=gnu++11 \
-					 -I$(PBLOG_INCLUDE) -I$(GTEST_INCDIR)
+                     -I$(PBLOG_INCLUDE) -I$(GTEST_INCDIR)
 PBLOG_TESTS_CFLAGS_LINK = -Wl,-rpath $(PBLOG_OUT) -Wl,-rpath $(GTEST_LIBDIR)
 PBLOG_TESTS_LIBS = -L$(PBLOG_OUT) -lpblog -L$(GTEST_LIBDIR) -lgtest_main \
-				   -lgtest -pthread
+                   -lgtest -pthread
 
 .SECONDARY: $(PBLOG_TESTS) $(PBLOG_SECONDARY)
 .PHONY: all all-real check install clean $(PBLOG_PHONY)

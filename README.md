@@ -25,21 +25,30 @@ For ubuntu systems these can all be installed with apt
 
 Building
 --------
-    make NANOPB_DIR=<NANOPB_SOURCE_DIR> all
+    make NANOPB_SRC_DIR=<NANOPB_SOURCE_DIR> all
 
 if you don't already have nanopb you can
 
     git clone https://github.com/nanopb/nanopb
-	make -C nanopb/generator/proto
-	make NANOPB_DIR=nanopb all
+	make NANOPB_SRC_DIR=nanopb all
+
+if you want to use an installed nanopb, pkg-config will be invoked to find it
+
+	make all
+
+otherwise you can specify the directory where nanopb was installed
+
+	make NANOPB_DIR=<NANOPB_PREFIX> all
 
 Installing
 ----------
-    make NANOPB_DIR=<NANOPB_SOURCE_DIR> PREFIX=/usr install
+    make PREFIX=/usr install
+
+this takes all of the same options as above for nanopb
 
 Testing
 -------
-    make NANOPB_DIR=<NANOPB_SOURCE_DIR> GTEST_DIR=<GTEST_DIR> check
+    make GTEST_DIR=<GTEST_DIR> check
 
 if you don't already have gtest you can run
 
@@ -52,7 +61,7 @@ if you don't already have gtest you can run
     make
     make install
     popd >/dev/null
-    make NANOPB_DIR=<NANOPB_SOURCE_DIR> GTEST_DIR=googletest check
+    make GTEST_DIR=googletest check
 
 Use in a project
 ----------------
@@ -61,7 +70,8 @@ mk/pblog.mk which can be included.
 
 The makefile depends on the following variables:
 
-- NANOPB\_DIR: The directory containing the source code for nanopb
+- NANOPB\_SRC\_DIR: The directory containing the source code for nanopb
+- NANOPB\_DIR: The directory containing the compiled version of nanopb
 - PBLOG\_BUILD\_STATIC: Whether or not we should build a static pblog
 - PBLOG\_BUILD\_SHARED: Whether or not we should build a shared pblog
 
