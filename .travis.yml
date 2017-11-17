@@ -1,15 +1,15 @@
-dist: precise
+dist: trusty
 sudo: false
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-precise-3.8
+      - llvm-toolchain-trusty-5.0
     packages:
-      - clang-3.8
-      - clang-tidy-3.8
-      - gcc-6
-      - g++-6
+      - clang-5.0
+      - clang-tidy-5.0
+      - gcc-7
+      - g++-7
 language:
   - c
   - c++
@@ -18,10 +18,10 @@ env:
     - GOOGLETEST_VERSION=1.8.0
     - NANOPB_VERSION=58af4d1fb733c5348b68dd3980f2a230d95400b4
   matrix:
-    - PROTOBUF_VERSION=2.6.1 MYCC=gcc-6
-    - PROTOBUF_VERSION=2.6.1 MYCC=clang-3.8
-    - PROTOBUF_VERSION=3.1.0 MYCC=gcc-6
-    - PROTOBUF_VERSION=3.1.0 MYCC=clang-3.8
-    - LINT=1 PROTOBUF_VERSION=3.1.0 MYCC=clang-3.8
+    - PROTOBUF_VERSION=2.6.1 MYCC=gcc-7
+    - PROTOBUF_VERSION=2.6.1 MYCC=clang-5.0
+    - PROTOBUF_VERSION=3.5.0 MYCC=gcc-7
+    - PROTOBUF_VERSION=3.5.0 MYCC=clang-5.0
+    - LINT=1 PROTOBUF_VERSION=3.1.0 MYCC=clang-5.0
 install: ./.travis-install.sh
 script: ./.travis-script.sh
