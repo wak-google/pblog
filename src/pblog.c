@@ -317,7 +317,12 @@ int pblog_init(struct pblog *pblog, int allow_clear_on_add,
 }
 
 void pblog_free(struct pblog *pblog) {
-  struct pblog_metadata *meta = pblog->priv;
+  struct pblog_metadata *meta;
+
+  if (pblog == NULL)
+    return;
+
+  meta = pblog->priv;
   record_intf_free(meta->mem_ri);
   free(meta->mem_ri);
   pblog_mem_ops.priv = NULL;

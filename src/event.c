@@ -106,6 +106,10 @@ void event_init(pblog_Event *event) { memset(event, 0, sizeof(*event)); }
 
 void event_free(pblog_Event *event) {
   int i = 0;
+
+  if (event == NULL)
+    return;
+
   for (i = 0; i < event->data_count; ++i) {
     free(event->data[i].key.arg);
     event->data[i].key.arg = NULL;

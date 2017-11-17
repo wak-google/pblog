@@ -80,6 +80,9 @@ static const struct nvram_entry *find_key(const struct nvram_entry *entries,
 }
 
 void nvram_entry_free(struct nvram_entry *entry) {
+  if (entry == NULL)
+    return;
+
   free(entry->key);
   free(entry->data);
 }
@@ -127,6 +130,10 @@ static int nvram_enumerate(struct nvram *nvram, struct nvram_entry **entries) {
 
 void nvram_list_free(struct nvram_entry **entries) {
   struct nvram_entry *entry;
+
+  if (*entries == NULL)
+    return;
+
   for (entry = *entries; entry && entry->key != NULL; entry++) {
     nvram_entry_free(entry);
   }

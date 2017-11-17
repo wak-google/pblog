@@ -459,7 +459,12 @@ int record_intf_init(record_intf *ri, const struct record_region *regions,
 }
 
 void record_intf_free(record_intf *ri) {
-  struct log_metadata *meta = ri->priv;
+  struct log_metadata *meta;
+
+  if (ri == NULL)
+    return;
+
+  meta = ri->priv;
   free(meta->regions);
   free(meta);
 }
